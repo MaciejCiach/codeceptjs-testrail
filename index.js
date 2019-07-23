@@ -44,9 +44,17 @@ module.exports = (config) => {
 	runName = config.runName ? config.runName : `This is a new test run on ${getToday()}`;
 
 	function _addTestRun(projectId, suiteId, runName) {
-		testrail.addRun(projectId, { suite_id: suiteId, name: runName, include_all: false }, (err, response, run) => {
-			if (err) throw new Error(`Something is wrong while adding new run with name ${runName}. Please check ${JSON.stringify(err)}`);
-			runId = run.id;
+		let previousRun;
+		testrail.getRuns(projectId,{},(err,response,r) => {
+			previousRun = r.find(x => x.name === runName)
+			if(!previousRun) {
+				testrail.addRun(projectId, { suite_id: suiteId, name: runName, include_all: false }, (err, response, run) => {
+					if (err) throw new Error(`Something is wrong while adding new run with name ${runName}. Please check ${JSON.stringify(err)}`);
+					runId = run.id;
+				});
+			} else {
+				runId = previousRun.id;
+			}
 		});
 	}
 
